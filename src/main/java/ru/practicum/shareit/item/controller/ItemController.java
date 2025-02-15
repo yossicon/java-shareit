@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.util.HttpHeaderUtil;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class ItemController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemDto addItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemDto addItem(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId,
                            @Valid @RequestBody ItemDto itemDto) {
         log.info("Добавление вещи {} пользователем с id {}", itemDto.getName(), userId);
         ItemDto addedItem = itemService.addItem(userId, itemDto);
@@ -30,7 +31,7 @@ public class ItemController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ItemDto> getAllUserItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemDto> getAllUserItems(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId) {
         log.info("Получение всех вещей пользователя с id {}", userId);
         return itemService.getAllUserItems(userId);
     }
@@ -51,7 +52,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
-    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ItemDto updateItem(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId,
                               @PathVariable Long itemId,
                               @RequestBody ItemUpdateDto updateDto) {
         log.info("Обновление данных вещи с id {} пользователя с id {}", itemId, userId);

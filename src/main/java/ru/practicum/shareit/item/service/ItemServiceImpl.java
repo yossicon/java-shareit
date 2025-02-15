@@ -17,26 +17,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
+    private final ItemMapper itemMapper;
     private final UserService userService;
 
     @Override
     public ItemDto addItem(Long userId, ItemDto itemDto) {
         userService.getUserById(userId);
-        Item item = ItemMapper.mapToItem(itemDto);
-        return ItemMapper.mapToItemDto(itemRepository.addItem(userId, item));
+        Item item = itemMapper.mapToItem(itemDto);
+        return itemMapper.mapToItemDto(itemRepository.addItem(userId, item));
     }
 
     @Override
     public List<ItemDto> getAllUserItems(Long userId) {
         return itemRepository.getAllUserItems(userId).stream()
-                .map(ItemMapper::mapToItemDto)
+                .map(itemMapper::mapToItemDto)
                 .toList();
     }
 
     @Override
     public ItemDto getItemById(Long itemId) {
         return itemRepository.getItemById(itemId)
-                .map(ItemMapper::mapToItemDto)
+                .map(itemMapper::mapToItemDto)
                 .orElseThrow(() -> new NotFoundException(String.format("Вещь с id %d не найдена", itemId)));
     }
 
@@ -46,7 +47,7 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
         return itemRepository.searchItem(text).stream()
-                .map(ItemMapper::mapToItemDto)
+                .map(itemMapper::mapToItemDto)
                 .toList();
     }
 
@@ -58,16 +59,16 @@ public class ItemServiceImpl implements ItemService {
                     itemId, userId));
         }
         ItemDto oldItem = getItemById(itemId);
-        if (updateDto.getName() != null) {
+        if (updateDto.getName() != null && !updateDto.getName().isBlank()) {
             oldItem.setName(updateDto.getName());
         }
-        if (updateDto.getDescription() != null) {
+        if (updateDto.getDescription() != null && !updateDto.getDescription().isBlank()) {
             oldItem.setDescription(updateDto.getDescription());
         }
         if (updateDto.getAvailable() != null) {
             oldItem.setAvailable(updateDto.getAvailable());
         }
-        Item newItem = ItemMapper.mapToItem(oldItem);
-        return ItemMapper.mapToItemDto(itemRepository.updateItem(itemId, newItem));
+        Item newItem = itemMapper.mapToItem(oldItem);
+        return itemMapper.mapToItemDto(itemRepository.updateItem(itemId, newItem));
     }
 }

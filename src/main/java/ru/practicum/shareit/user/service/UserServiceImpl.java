@@ -16,27 +16,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public UserDto addUser(UserDto userDto) {
-        User user = UserMapper.mapToUser(userDto);
+        User user = userMapper.mapToUser(userDto);
         if (userRepository.getUserByEmail(user.getEmail()).isPresent()) {
             throw new DuplicatedDataException(String.format("Email %s уже используется", user.getEmail()));
         }
-        return UserMapper.mapToUserDto(userRepository.addUser(user));
+        return userMapper.mapToUserDto(userRepository.addUser(user));
     }
 
     @Override
     public List<UserDto> getAllUsers() {
         return userRepository.getAllUsers().stream()
-                .map(UserMapper::mapToUserDto)
+                .map(userMapper::mapToUserDto)
                 .toList();
     }
 
     @Override
     public UserDto getUserById(Long userId) {
         return userRepository.getUserById(userId)
-                .map(UserMapper::mapToUserDto)
+                .map(userMapper::mapToUserDto)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
     }
 
@@ -46,14 +47,14 @@ public class UserServiceImpl implements UserService {
             throw new DuplicatedDataException(String.format("Email %s уже используется", updateDto.getEmail()));
         }
         UserDto oldUser = getUserById(userId);
-        if (updateDto.getEmail() != null) {
+        if (updateDto.getEmail() != null && !updateDto.getEmail().isBlank()) {
             oldUser.setEmail(updateDto.getEmail());
         }
-        if (updateDto.getName() != null) {
+        if (updateDto.getName() != null && !updateDto.getName().isBlank()) {
             oldUser.setName(updateDto.getName());
         }
-        User newUser = UserMapper.mapToUser(oldUser);
-        return UserMapper.mapToUserDto(userRepository.updateUser(userId, newUser));
+        User newUser = userMapper.mapToUser(oldUser);
+        return userMapper.mapToUserDto(userRepository.updateUser(userId, newUser));
     }
 
     @Override
