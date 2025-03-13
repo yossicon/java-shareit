@@ -1,24 +1,32 @@
 package ru.practicum.shareit.item.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import ru.practicum.shareit.user.model.User;
 
-@Data
+@Entity
+@Table(name = "items")
+@Getter
+@Setter
+@ToString(exclude = "owner")
 public class Item {
-    @Positive(message = "id вещи должен быть положительным")
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Название вещи не может быть пустым")
+    @Column(nullable = false)
     private String name;
 
-    @NotBlank(message = "Описание вещи не может быть пустым")
+    @Column(nullable = false)
     private String description;
 
-    @NotNull
+    @Column(nullable = false)
     private Boolean available;
 
-    @Positive(message = "id пользователя должен быть положительным")
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 }
