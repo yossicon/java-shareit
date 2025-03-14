@@ -20,7 +20,10 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,30 +47,53 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDtoWithBookings> getAllUserItems(Long userId) {
         findUserById(userId);
         List<Item> items = itemRepository.findAllByOwnerId(userId);
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .toList();
+        LocalDateTime date = LocalDateTime.now();
+
+        List<Booking> allBookings = bookingRepository.findAllByItemIdIn(itemIds);
+        Map<Long, List<Booking>> bookingsByItems = allBookings.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getItem().getId(), Collectors.toList()));
+
+        List<Comment> allComments = commentRepository.findAllByItemIdIn(itemIds);
+        Map<Long, List<Comment>> commentsByItems = allComments.stream()
+                .collect(Collectors.groupingBy(comment -> comment.getItem().getId(), Collectors.toList()));
+
         return items.stream()
                 .map(item -> {
-                    LocalDateTime date = LocalDateTime.now();
-                    Booking lastBooking = bookingRepository
-                            .findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), date)
+                    List<Booking> itemBookings = bookingsByItems.getOrDefault(item.getId(), List.of());
+
+                    Booking lastBooking = itemBookings.stream()
+                            .filter(booking -> booking.getEnd().isBefore(date))
+                            .max(Comparator.comparing(Booking::getStart))
                             .orElse(null);
-                    Booking nextBooking = bookingRepository
-                            .findFirstByItemIdAndStartAfterOrderByStartDesc(item.getId(), date)
+                    Booking nextBooking = itemBookings.stream()
+                            .filter(booking -> booking.getStart().isAfter(date))
+                            .min(Comparator.comparing(Booking::getStart))
                             .orElse(null);
-                    List<Comment> comments = commentRepository.findAllByItemId(item.getId());
+                    List<Comment> comments = commentsByItems.getOrDefault(item.getId(), List.of());
                     return itemMapper.mapToItemDtoWithBookings(item, lastBooking, nextBooking, comments);
                 }).toList();
     }
 
     @Override
-    public ItemDtoWithBookings getItemById(Long itemId) {
-        Item item = findItemById(itemId);
+    public ItemDtoWithBookings getItemById(Long userId, Long itemId) {
+        Booking lastBooking;
+        Booking nextBooking;
         LocalDateTime date = LocalDateTime.now();
-        Booking lastBooking = bookingRepository
-                .findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), date)
-                .orElse(null);
-        Booking nextBooking = bookingRepository
-                .findFirstByItemIdAndStartAfterOrderByStartDesc(item.getId(), date)
-                .orElse(null);
+        Item item = findItemById(itemId);
+        if (!item.getOwner().getId().equals(userId)) {
+            lastBooking = null;
+            nextBooking = null;
+        } else {
+            lastBooking = bookingRepository
+                    .findFirstByItemIdAndEndBeforeOrderByStartDesc(item.getId(), date)
+                    .orElse(null);
+            nextBooking = bookingRepository
+                    .findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), date)
+                    .orElse(null);
+        }
         List<Comment> comments = commentRepository.findAllByItemId(item.getId());
         return itemMapper.mapToItemDtoWithBookings(item, lastBooking, nextBooking, comments);
     }
@@ -78,7 +104,6 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
         return itemRepository.searchItem(text).stream()
-                .filter(Item::getAvailable)
                 .map(itemMapper::mapToItemDto)
                 .toList();
     }
@@ -123,7 +148,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public Item findItemById(Long itemId) {
-        return itemRepository.findById(itemId)
+        return itemRepository.findByIdWithOwner(itemId)
                 .orElseThrow(() -> new NotFoundException(String.format("Вещь с id %d не найдена",
                         itemId)));
     }

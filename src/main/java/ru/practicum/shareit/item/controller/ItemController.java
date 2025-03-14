@@ -50,9 +50,10 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
-    public ItemDtoWithBookings getItemById(@PathVariable Long itemId) {
+    public ItemDtoWithBookings getItemById(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId,
+                                           @PathVariable Long itemId) {
         log.info("Получение вещи по id {}", itemId);
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(userId, itemId);
     }
 
     @GetMapping("/search")

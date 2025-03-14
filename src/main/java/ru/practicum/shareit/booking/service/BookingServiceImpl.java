@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.DuplicatedDataException;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.ItemUnavailableException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -30,9 +31,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto addBooking(Long bookerId, BookingSaveDto bookingSaveDto) {
-        if (bookingSaveDto.getStart().isAfter(bookingSaveDto.getEnd())) {
-            throw new IllegalArgumentException("Дата начала бронирования не может быть позже его конца");
-        }
         User booker = findUserById(bookerId);
         Item item = itemRepository.findById(bookingSaveDto.getItemId())
                 .orElseThrow(() -> new NotFoundException(String.format("Вещь с id %d не найдена",
@@ -89,9 +87,11 @@ public class BookingServiceImpl implements BookingService {
         findUserById(ownerId);
         List<Item> items = itemRepository.findAllByOwnerId(ownerId);
         LocalDateTime date = LocalDateTime.now();
+
         if (items.isEmpty()) {
             throw new NotFoundException(String.format("У пользователя c id %d ещё нет вещей", ownerId));
         }
+
         List<Long> itemIds = items.stream()
                 .map(Item::getId)
                 .toList();
@@ -120,6 +120,9 @@ public class BookingServiceImpl implements BookingService {
             throw new ForbiddenException("Подтверждение/отклонение бронирования может быть выполнено " +
                     "только владельцем вещи");
         }
+        if (booking.getStatus().equals(Status.APPROVED)) {
+            throw new DuplicatedDataException("Бронирование уже подтверждено");
+        }
         if (approved) {
             booking.setStatus(Status.APPROVED);
         } else {
@@ -129,7 +132,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public Booking findBookingById(Long bookingId) {
-        return bookingRepository.findById(bookingId)
+        return bookingRepository.findByIdWithBookerAndItem(bookingId)
                 .orElseThrow(() -> new NotFoundException(String.format("Бронирование с id %d не найдено", bookingId)));
     }
 

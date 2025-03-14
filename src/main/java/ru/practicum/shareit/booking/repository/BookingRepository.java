@@ -14,15 +14,24 @@ import java.util.Optional;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
+    @Query("select b " +
+            "from Booking b " +
+            "join fetch b.booker " +
+            "join fetch b.item " +
+            "where b.id = ?1")
+    Optional<Booking> findByIdWithBookerAndItem(Long bookingId);
+
+    List<Booking> findAllByItemIdIn(List<Long> itemIds);
+
     List<Booking> findAllByBookerIdOrderByStartDesc(Long bookerId);
 
     List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Long bookerId, Status status);
 
     @Query("select b " +
-            "from Booking as b " +
+            "from Booking b " +
             "where b.booker.id = ?1 " +
-            "AND b.start < ?2 " +
-            "AND b.end > ?2 " +
+            "and b.start < ?2 " +
+            "and b.end > ?2 " +
             "order by b.start desc")
     List<Booking> findAllCurrentBookingsByBookerId(Long bookerId, LocalDateTime date);
 
@@ -37,10 +46,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByItemIdInAndStatusOrderByStartDesc(Collection<Long> itemIds, Status status);
 
     @Query("select b " +
-            "from Booking as b " +
+            "from Booking b " +
             "where b.item.id in ?1 " +
-            "AND b.start < ?2 " +
-            "AND b.end > ?2 " +
+            "and b.start < ?2 " +
+            "and b.end > ?2 " +
             "order by b.start desc")
     List<Booking> findAllCurrentBookingsByItemIds(Collection<Long> itemIds, LocalDateTime date);
 
@@ -48,7 +57,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByItemIdInAndStartAfterOrderByStartDesc(Collection<Long> itemIds, LocalDateTime date);
 
-    Optional<Booking> findFirstByItemIdAndStartAfterOrderByStartDesc(Long itemId, LocalDateTime date);
-
     Optional<Booking> findFirstByItemIdAndStartAfterOrderByStartAsc(Long itemId, LocalDateTime date);
+
+    Optional<Booking> findFirstByItemIdAndEndBeforeOrderByStartDesc(Long itemId, LocalDateTime date);
 }
