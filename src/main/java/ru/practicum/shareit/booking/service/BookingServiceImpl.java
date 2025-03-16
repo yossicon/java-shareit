@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingSaveDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -30,6 +31,7 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
 
     @Override
+    @Transactional
     public BookingDto addBooking(Long bookerId, BookingSaveDto bookingSaveDto) {
         User booker = findUserById(bookerId);
         Item item = itemRepository.findById(bookingSaveDto.getItemId())
@@ -114,29 +116,26 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDto approveBooking(Long ownerId, Long bookingId, Boolean approved) {
         Booking booking = findBookingById(bookingId);
         if (!booking.getItem().getOwner().getId().equals(ownerId)) {
             throw new ForbiddenException("Подтверждение/отклонение бронирования может быть выполнено " +
                     "только владельцем вещи");
         }
-        if (booking.getStatus().equals(Status.APPROVED)) {
+        if (Status.APPROVED.equals(booking.getStatus())) {
             throw new DuplicatedDataException("Бронирование уже подтверждено");
         }
-        if (approved) {
-            booking.setStatus(Status.APPROVED);
-        } else {
-            booking.setStatus(Status.REJECTED);
-        }
-        return bookingMapper.mapToBookingDto(bookingRepository.save(booking));
+        booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
+        return bookingMapper.mapToBookingDto(booking);
     }
 
-    public Booking findBookingById(Long bookingId) {
+    private Booking findBookingById(Long bookingId) {
         return bookingRepository.findByIdWithBookerAndItem(bookingId)
                 .orElseThrow(() -> new NotFoundException(String.format("Бронирование с id %d не найдено", bookingId)));
     }
 
-    public User findUserById(Long userId) {
+    private User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
     }

@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -36,6 +37,7 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
 
     @Override
+    @Transactional
     public ItemDto addItem(Long userId, ItemSaveDto itemDto) {
         User owner = findUserById(userId);
         Item item = itemMapper.mapToItem(itemDto);
@@ -109,6 +111,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemDto updateItem(Long userId, Long itemId, ItemSaveDto itemDto) {
         Item item = findItemById(itemId);
         findUserById(userId);
@@ -124,10 +127,11 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             item.setAvailable(itemDto.getAvailable());
         }
-        return itemMapper.mapToItemDto(itemRepository.save(item));
+        return itemMapper.mapToItemDto(item);
     }
 
     @Override
+    @Transactional
     public CommentDto addComment(Long userId, Long itemId, CommentSaveDto commentDto) {
         User author = findUserById(userId);
         Item item = findItemById(itemId);
@@ -135,7 +139,7 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new BookingUnavailableException(String.format("Бронирование вещи с id %d " +
                         "пользователем с id %d не найдено", itemId, userId)));
         LocalDateTime date = LocalDateTime.now();
-        if (!booking.getStatus().equals(Status.APPROVED) || !booking.getEnd().isBefore(date)) {
+        if (!Status.APPROVED.equals(booking.getStatus()) || !booking.getEnd().isBefore(date)) {
             throw new BookingUnavailableException(String.format("Бронирование с id %d недоступно для отзыва",
                     booking.getId()));
         }
@@ -147,13 +151,13 @@ public class ItemServiceImpl implements ItemService {
         return commentMapper.mapToCommentDto(commentRepository.save(comment));
     }
 
-    public Item findItemById(Long itemId) {
+    private Item findItemById(Long itemId) {
         return itemRepository.findByIdWithOwner(itemId)
                 .orElseThrow(() -> new NotFoundException(String.format("Вещь с id %d не найдена",
                         itemId)));
     }
 
-    public User findUserById(Long userId) {
+    private User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
     }

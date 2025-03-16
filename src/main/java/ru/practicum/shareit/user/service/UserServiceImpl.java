@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.DuplicatedDataException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -19,6 +20,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
+    @Transactional
     public UserDto addUser(UserSaveDto userDto) {
         User user = userMapper.mapToUser(userDto);
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
@@ -42,6 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto updateUser(Long userId, UserSaveDto userDto) {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
             throw new DuplicatedDataException(String.format("Email %s уже используется", userDto.getEmail()));
@@ -53,7 +56,7 @@ public class UserServiceImpl implements UserService {
         if (userDto.getName() != null && !userDto.getName().isBlank()) {
             user.setName(userDto.getName());
         }
-        return userMapper.mapToUserDto(userRepository.save(user));
+        return userMapper.mapToUserDto(user);
     }
 
     @Override
@@ -62,7 +65,7 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
-    public User findUserById(Long userId) {
+    private User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
     }

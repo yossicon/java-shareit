@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -18,8 +19,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "from Booking b " +
             "join fetch b.booker " +
             "join fetch b.item " +
-            "where b.id = ?1")
-    Optional<Booking> findByIdWithBookerAndItem(Long bookingId);
+            "where b.id = :bookingId")
+    Optional<Booking> findByIdWithBookerAndItem(@Param("bookingId") Long bookingId);
 
     List<Booking> findAllByItemIdIn(List<Long> itemIds);
 
@@ -29,11 +30,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("select b " +
             "from Booking b " +
-            "where b.booker.id = ?1 " +
-            "and b.start < ?2 " +
-            "and b.end > ?2 " +
+            "where b.booker.id = :bookerId " +
+            "and b.start < :date " +
+            "and b.end > :date " +
             "order by b.start desc")
-    List<Booking> findAllCurrentBookingsByBookerId(Long bookerId, LocalDateTime date);
+    List<Booking> findAllCurrentBookingsByBookerId(@Param("bookerId") Long bookerId,
+                                                   @Param("date") LocalDateTime date);
 
     List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Long bookerId, LocalDateTime date);
 
@@ -47,11 +49,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("select b " +
             "from Booking b " +
-            "where b.item.id in ?1 " +
-            "and b.start < ?2 " +
-            "and b.end > ?2 " +
+            "where b.item.id in :itemIds " +
+            "and b.start < :date " +
+            "and b.end > :date " +
             "order by b.start desc")
-    List<Booking> findAllCurrentBookingsByItemIds(Collection<Long> itemIds, LocalDateTime date);
+    List<Booking> findAllCurrentBookingsByItemIds(@Param("itemIds") Collection<Long> itemIds,
+                                                  @Param("date") LocalDateTime date);
 
     List<Booking> findAllByItemIdInAndEndBeforeOrderByStartDesc(Collection<Long> itemIds, LocalDateTime date);
 
