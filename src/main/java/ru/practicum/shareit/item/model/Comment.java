@@ -8,27 +8,30 @@ import lombok.Setter;
 import lombok.ToString;
 import ru.practicum.shareit.user.model.User;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "items")
+@Table(name = "comments")
 @Getter
 @Setter
-@ToString(exclude = "owner")
-public class Item {
+@ToString(exclude = {"item", "author"})
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
-    private String name;
-
-    @NotBlank
-    private String description;
-
-    @NotNull
-    private Boolean available;
+    private String text;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id")
-    private User owner;
+    @JoinColumn(name = "item_id")
+    private Item item;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private User author;
+
+    @NotNull
+    private LocalDateTime created;
 }

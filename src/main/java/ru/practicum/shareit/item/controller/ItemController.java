@@ -4,11 +4,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemUpdateDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.util.HttpHeaderUtil;
+import ru.practicum.shareit.validation.OnCreate;
 
 import java.util.List;
 
@@ -22,25 +23,37 @@ public class ItemController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto addItem(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId,
-                           @Valid @RequestBody ItemDto itemDto) {
+                           @Validated(OnCreate.class) @RequestBody ItemSaveDto itemDto) {
         log.info("Добавление вещи {} пользователем с id {}", itemDto.getName(), userId);
         ItemDto addedItem = itemService.addItem(userId, itemDto);
         log.info("Вещь успешно добавлена с id {}", addedItem.getId());
         return addedItem;
     }
 
+    @PostMapping("/{itemId}/comment")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentDto addComment(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId,
+                                 @PathVariable Long itemId,
+                                 @Valid @RequestBody CommentSaveDto commentDto) {
+        log.info("Добавление комментария пользователем с id {} к вещи с id {}", userId, itemId);
+        CommentDto savedComment = itemService.addComment(userId, itemId, commentDto);
+        log.info("Комментарий успешно добавлен с id {}", savedComment.getId());
+        return savedComment;
+    }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ItemDto> getAllUserItems(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId) {
+    public List<ItemDtoWithBookings> getAllUserItems(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId) {
         log.info("Получение всех вещей пользователя с id {}", userId);
         return itemService.getAllUserItems(userId);
     }
 
     @GetMapping("/{itemId}")
     @ResponseStatus(HttpStatus.OK)
-    public ItemDto getItemById(@PathVariable Long itemId) {
+    public ItemDtoWithBookings getItemById(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId,
+                                           @PathVariable Long itemId) {
         log.info("Получение вещи по id {}", itemId);
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(userId, itemId);
     }
 
     @GetMapping("/search")
@@ -54,9 +67,9 @@ public class ItemController {
     @ResponseStatus(HttpStatus.OK)
     public ItemDto updateItem(@RequestHeader(HttpHeaderUtil.USER_ID_HEADER) Long userId,
                               @PathVariable Long itemId,
-                              @RequestBody ItemUpdateDto updateDto) {
+                              @RequestBody ItemSaveDto itemDto) {
         log.info("Обновление данных вещи с id {} пользователя с id {}", itemId, userId);
-        ItemDto updatedItem = itemService.updateItem(userId, itemId, updateDto);
+        ItemDto updatedItem = itemService.updateItem(userId, itemId, itemDto);
         log.info("Данные вещи {} с id {} успешно обновлены", updatedItem.getName(), updatedItem.getId());
         return updatedItem;
     }

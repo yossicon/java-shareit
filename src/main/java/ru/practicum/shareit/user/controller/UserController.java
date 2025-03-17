@@ -1,13 +1,15 @@
 package ru.practicum.shareit.user.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserUpdateDto;
+import ru.practicum.shareit.user.dto.UserSaveDto;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.validation.OnCreate;
+import ru.practicum.shareit.validation.OnUpdate;
 
 import java.util.List;
 
@@ -20,7 +22,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto addUser(@Valid @RequestBody UserDto userDto) {
+    public UserDto addUser(@Validated(OnCreate.class) @RequestBody UserSaveDto userDto) {
         log.info("Добавление пользователя {}", userDto.getName());
         UserDto addedUser = userService.addUser(userDto);
         log.info("Пользователь {} успешно добавлен с id {}", addedUser.getName(), addedUser.getId());
@@ -44,9 +46,9 @@ public class UserController {
     @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public UserDto updateUser(@PathVariable Long userId,
-                              @Valid @RequestBody UserUpdateDto updateDto) {
+                              @Validated(OnUpdate.class) @RequestBody UserSaveDto userDto) {
         log.info("Обновление данных пользователя с id {}", userId);
-        UserDto updatedUser = userService.updateUser(userId, updateDto);
+        UserDto updatedUser = userService.updateUser(userId, userDto);
         log.info("Данные пользователя {} с id {} успешно обновлены", updatedUser.getName(), updatedUser.getId());
         return updatedUser;
     }
