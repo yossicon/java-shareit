@@ -1,7 +1,7 @@
 package ru.practicum.shareit.user.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,13 +18,11 @@ public class User {
     @ToString.Include
     private Long id;
 
-    @NotNull
+    @NotBlank
     @ToString.Include
-    @Column(nullable = false)
     private String name;
 
-    @NotNull
+    @NotBlank
     @ToString.Include
-    @Column(nullable = false)
     private String email;
 }
