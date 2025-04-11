@@ -35,9 +35,9 @@ class ErrorHandlerTest {
     private final ItemService itemService;
     private final ObjectMapper mapper;
 
-    private final Long NONEXISTENT_USER_ID = 1L;
-    private final Long NONEXISTENT_ITEM_ID = 50L;
-    private final Long NONEXISTENT_BOOKING_ID = 100L;
+    private static final Long NONEXISTENT_USER_ID = 1L;
+    private static final Long NONEXISTENT_ITEM_ID = 50L;
+    private static final Long NONEXISTENT_BOOKING_ID = 100L;
 
     @Test
     void testHandleNotFound() throws Exception {
