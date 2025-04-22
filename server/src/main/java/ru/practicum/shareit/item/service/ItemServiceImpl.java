@@ -22,7 +22,10 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -145,7 +148,7 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new BookingUnavailableException(String.format("Бронирование вещи с id %d " +
                         "пользователем с id %d не найдено", itemId, userId)));
         LocalDateTime date = LocalDateTime.now();
-        if (!Objects.equals(booking.getStatus(), BookingStatus.APPROVED) || !booking.getEnd().isBefore(date)) {
+        if (booking.getStatus() != BookingStatus.APPROVED || !booking.getEnd().isBefore(date)) {
             throw new BookingUnavailableException(String.format("Бронирование с id %d недоступно для отзыва",
                     booking.getId()));
         }
