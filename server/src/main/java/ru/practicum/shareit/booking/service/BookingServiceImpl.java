@@ -123,7 +123,7 @@ public class BookingServiceImpl implements BookingService {
             throw new ForbiddenException("Подтверждение/отклонение бронирования может быть выполнено " +
                     "только владельцем вещи");
         }
-        if (BookingStatus.APPROVED.equals(booking.getStatus())) {
+        if (BookingStatus.APPROVED == booking.getStatus()) {
             throw new DuplicatedDataException("Бронирование уже подтверждено");
         }
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
