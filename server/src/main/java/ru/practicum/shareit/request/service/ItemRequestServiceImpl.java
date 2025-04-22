@@ -42,14 +42,12 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getAllUserRequests(Long userId) {
-        findUserById(userId);
         List<ItemRequest> requests = requestRepository.findAllByRequesterIdOrderByCreatedDesc(userId);
         return getRequestsWithResponses(requests);
     }
 
     @Override
     public List<ItemRequestDto> getAllRequests(Long userId) {
-        findUserById(userId);
         List<ItemRequest> requests = requestRepository.findAllByRequesterIdNotOrderByCreatedDesc(userId);
         return getRequestsWithResponses(requests);
     }

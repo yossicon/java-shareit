@@ -28,16 +28,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ErrorHandlerTest {
+    private static final Long NONEXISTENT_USER_ID = 1L;
+    private static final Long NONEXISTENT_ITEM_ID = 50L;
+    private static final Long NONEXISTENT_BOOKING_ID = 100L;
+
     private final MockMvc mockMvc;
     @MockBean
     private final BookingService bookingService;
     @MockBean
     private final ItemService itemService;
     private final ObjectMapper mapper;
-
-    private static final Long NONEXISTENT_USER_ID = 1L;
-    private static final Long NONEXISTENT_ITEM_ID = 50L;
-    private static final Long NONEXISTENT_BOOKING_ID = 100L;
 
     @Test
     void testHandleNotFound() throws Exception {

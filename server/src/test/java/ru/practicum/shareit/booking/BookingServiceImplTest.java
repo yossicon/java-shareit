@@ -37,6 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class BookingServiceImplTest {
+    private static final Long NONEXISTENT_ID = 100L;
+
     private final EntityManager em;
     private final BookingService bookingService;
     private final UserService userService;
@@ -46,8 +48,6 @@ public class BookingServiceImplTest {
     private UserSaveDto userDto2;
     private ItemSaveDto itemDto;
     private BookingSaveDto bookingDto;
-
-    private static final Long NONEXISTENT_ID = 100L;
 
     @BeforeEach
     public void setUp() {
